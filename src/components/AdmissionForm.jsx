@@ -25,21 +25,44 @@ export default function AdmissonForm() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async () => {
-    // Basic validation
-    if (!formData.studentName || !formData.mobileNumber || !formData.email) {
-      setMessage("Please fill all required fields!");
+const handleSubmit = async () => {
+
+    // 1. Check each required field individually
+    if (!formData.studentName) {
+      setMessage("Please enter Student Name!");
       return;
     }
 
+    if (!formData.mobileNumber) {
+      setMessage("Please enter Mobile Number!");
+      return;
+    }
+
+    if (!formData.email) {
+      setMessage("Please enter Email ID!");
+      return;
+    }
+
+    // 2. Then validate format
+    if (!/^\d{10}$/.test(formData.mobileNumber)) {
+      setMessage("Mobile number must be exactly 10 digits!");
+      return;
+    }
+
+    if (!/^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$/.test(formData.email)) {
+      setMessage("Invalid email format!");
+      return;
+    }
+
+    // 3. All good — hit the API
     try {
       await axios.post("http://localhost:9090/api/students", formData);
       setMessage("Student admitted successfully!");
       setFormData(initialState);
-      // eslint-disable-next-line no-unused-vars
     } catch (error) {
       setMessage(error.response?.data || "Something went wrong. Try again!");
     }
+
   };
 
   return (
@@ -143,7 +166,13 @@ export default function AdmissonForm() {
           Submit Data
         </button>
 
-        {message && <p className="success-message">{message}</p>}
+        {message && (
+          <p className={
+            message.includes("successfully") ? "success-msg" : "error-msg"
+          }>
+            {message}
+          </p>
+        )}
       </div>
     </>
   );
